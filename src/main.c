@@ -66,7 +66,7 @@ void init_x() {
   dis = XOpenDisplay((char *)0);
   screen = DefaultScreen(dis);
   win = XCreateSimpleWindow(dis, DefaultRootWindow(dis), 0, 0, 300, 300, 5,
-			    GetColor(dis, "black"), GetColor(dis, "white"));
+			    GetColor(dis, "black"), GetColor(dis, "grey20"));
   XSetStandardProperties(dis, win, "Trafic lights", "Hi", None, NULL, 0, NULL);
   XSelectInput(dis, win, ExposureMask|KeyPressMask);
   gc=XCreateGC(dis, win, 0,0);        
@@ -88,9 +88,9 @@ void drawCarLight(carLight_t car, int x, int y) {
   XFillRectangle(dis, win, gc, x, y, 50, 130);
   XSetForeground(dis, gc, GetColor(dis, (car.redLight) ? "red" : "red4"));
   XFillArc(dis, win, gc, x + 10, y + 10, 30, 30, 0, 360*64);
-  XSetForeground(dis, gc, GetColor(dis, (car.yellowLight) ? "yellow" : "yellow4"));
+  XSetForeground(dis, gc, GetColor(dis, (car.yellowLight) ? "yellow" : "orange4"));
   XFillArc(dis, win, gc, x + 10, y + 50, 30, 30, 0, 360*64);
-  XSetForeground(dis, gc, GetColor(dis, (car.greenLight) ? "green" : "green4"));
+  XSetForeground(dis, gc, GetColor(dis, (car.greenLight) ? "green" : "DarkGreen"));
   XFillArc(dis, win, gc, x + 10, y + 90, 30, 30, 0, 360*64);
 }
 
@@ -99,7 +99,7 @@ void drawWalkLight(walkLight_t w, int x, int y) {
   XFillRectangle(dis, win, gc, x, y, 50, 90);
   XSetForeground(dis, gc, GetColor(dis, (w.redLight) ? "red" : "red4"));
   XFillArc(dis, win, gc, x + 10, y + 10, 30, 30, 0, 360*64);
-  XSetForeground(dis, gc, GetColor(dis, (w.greenLight) ? "green" : "green4"));
+  XSetForeground(dis, gc, GetColor(dis, (w.greenLight) ? "green" : "DarkGreen"));
   XFillArc(dis, win, gc, x + 10, y + 50, 30, 30, 0, 360*64);
 }
 
@@ -156,9 +156,9 @@ void redraw() {
 };
 
 int main() {
-  XEvent event;		/* the XEvent declaration !!! */
-  KeySym key;		/* a dealie-bob to handle KeyPress Events */	
-  char text[255];		/* a char buffer for KeyPress Events */
+  XEvent event;
+  KeySym key;
+  char text[255];
 
   init_x();
   c1.nextCarLight = &c2;
