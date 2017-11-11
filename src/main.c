@@ -19,12 +19,23 @@ walkLight_t w1 = {
   .redLight = 1,
   .greenLight = 0
 };
-light_t wg1 = {
-  .type = walk,
-  .w = &w1,
-  .pos = { .x = 120, .y = 50}
+
+walkLight_t w2 = {
+  .state = stay,
+  .redLight = 1,
+  .greenLight = 0
 };
+
 carLight_t c1 = {
+  .state = stop,
+  .redLight = 1,
+  .yellowLight = 0,
+  .greenLight = 0,
+  .nextCarLight = NULL,
+  .walkLight = &w2
+};
+
+carLight_t c2 = {
   .state = stop,
   .redLight = 1,
   .yellowLight = 0,
@@ -32,11 +43,8 @@ carLight_t c1 = {
   .nextCarLight = NULL,
   .walkLight = &w1
 };
-light_t wc1 = {
-  .type = car,
-  .c = &c1,
-  .pos = { .x = 50, .y = 50 }
-};
+
+carLight_t* curCar = &c1;
 
 /* Function declarations */
 void init_x();
@@ -75,76 +83,69 @@ void close_x() {
   exit(1);				
 };
 
-void drawCarLight(carLight_t car) {
+void drawCarLight(carLight_t car, int x, int y) {
   XSetForeground(dis, gc, GetColor(dis, "black"));
-  XFillRectangle(dis, win, gc, 40, 40, 50, 130);
+  XFillRectangle(dis, win, gc, x, y, 50, 130);
   XSetForeground(dis, gc, GetColor(dis, (car.redLight) ? "red" : "red4"));
-  XFillArc(dis, win, gc, 50, 50, 30, 30, 0, 360*64);
+  XFillArc(dis, win, gc, x + 10, y + 10, 30, 30, 0, 360*64);
   XSetForeground(dis, gc, GetColor(dis, (car.yellowLight) ? "yellow" : "yellow4"));
-  XFillArc(dis, win, gc, 50, 90, 30, 30, 0, 360*64);
+  XFillArc(dis, win, gc, x + 10, y + 50, 30, 30, 0, 360*64);
   XSetForeground(dis, gc, GetColor(dis, (car.greenLight) ? "green" : "green4"));
-  XFillArc(dis, win, gc, 50, 130, 30, 30, 0, 360*64);
+  XFillArc(dis, win, gc, x + 10, y + 90, 30, 30, 0, 360*64);
 }
 
-void drawWalkLight(walkLight_t w) {
+void drawWalkLight(walkLight_t w, int x, int y) {
   XSetForeground(dis, gc, GetColor(dis, "black"));
-  XFillRectangle(dis, win, gc, 100, 80, 50, 90);
+  XFillRectangle(dis, win, gc, x, y, 50, 90);
   XSetForeground(dis, gc, GetColor(dis, (w.redLight) ? "red" : "red4"));
-  XFillArc(dis, win, gc, 110, 90, 30, 30, 0, 360*64);
+  XFillArc(dis, win, gc, x + 10, y + 10, 30, 30, 0, 360*64);
   XSetForeground(dis, gc, GetColor(dis, (w.greenLight) ? "green" : "green4"));
-  XFillArc(dis, win, gc, 110, 130, 30, 30, 0, 360*64);
+  XFillArc(dis, win, gc, x + 10, y + 50, 30, 30, 0, 360*64);
 }
 
 void draw_lights() {
-  drawCarLight(c1);
-  //  drawWalkLight(w1);
+  drawCarLight(c1, 40, 40);
+  drawCarLight(c2, 260, 40);
+  drawWalkLight(w1, 100, 80);
+  drawWalkLight(w2, 320, 80);
 }
 
 void changeState() {
-  static uint8_t holdRedLight = 0;
-  walkLight_t* w = c1.walkLight;
-
-  switch (c1.state) {
+  walkLight_t* w = curCar->walkLight;
+  switch (curCar->state) {
   case stop:
-    c1.redLight = 1;
-    c1.yellowLight = 0;
-    if (w->state == stay && !holdRedLight) {
-      holdRedLight = 1;
-    }
-    else if (w->state == stay && holdRedLight) {
-      w->state = go;
-    }
-    else {
-      w->state = stay;
-      c1.state = drive_soon;
-      holdRedLight = 0;
-    }
+    curCar->redLight = 1;
+    curCar->yellowLight = 0;
+    curCar = curCar->nextCarLight;
+    curCar->state = drive_soon;
+    w->state = stay;
     break;
   case drive_soon:
-    c1.yellowLight = 1;
-    c1.state = drive;
+    curCar->yellowLight = 1;
+    curCar->state = drive;
+    w->state = go;
     break;
   case drive:
-    c1.redLight = 0;
-    c1.yellowLight = 0;
-    c1.greenLight = 1;
-    c1.state = stop_soon;
+    curCar->redLight = 0;
+    curCar->yellowLight = 0;
+    curCar->greenLight = 1;
+    curCar->state = stop_soon;
     break;
   case stop_soon:
-    c1.yellowLight = 1;
-    c1.greenLight = 0;
-    c1.state = stop;
+    curCar->yellowLight = 1;
+    curCar->greenLight = 0;
+    curCar->state = stop;
     break;
   }
 
   switch (w->state) {
   case stay:
-    w1.redLight = 1;
-    w1.greenLight = 0;
+    w->redLight = 1;
+    w->greenLight = 0;
     break;
   case go:
-    w1.redLight = 0;
-    w1.greenLight = 1;
+    w->redLight = 0;
+    w->greenLight = 1;
     break;
   }
 }
@@ -160,6 +161,8 @@ int main() {
   char text[255];		/* a char buffer for KeyPress Events */
 
   init_x();
+  c1.nextCarLight = &c2;
+  c2.nextCarLight = &c1;
 
   while(1) {		
     XNextEvent(dis, &event);
