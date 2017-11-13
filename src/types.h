@@ -1,5 +1,12 @@
+/*
+ * File: types.h
+ * Author: Martin Löfgren <martin.c.lofgren@gmail.com>
+ */
+
 #ifndef TRAFIC_SIGNAL_TYPES_H
 #define TRAFIC_SIGNAL_TYPES_H
+
+typedef void (*voidFunction)(void);
 
 typedef enum {
   stop,
