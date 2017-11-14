@@ -7,10 +7,12 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include <unistd.h>
+
 #include "types.h"
 #include "sim.h"
 
-// Trafic lights
+// Traffic lights
 walkLight_t w1 = {
   .state = stay,
   .redLight = 1,
@@ -43,6 +45,8 @@ carLight_t c2 = {
 
 carLight_t* curCar = &c1;
 
+toggleMode mode = semiAutomatic;
+
 /*****************************************************************************
  *
  *  FUNCTION DEFINITIONS
@@ -50,8 +54,8 @@ carLight_t* curCar = &c1;
  ****************************************************************************/
 
 /**
- * @brief  Switch between trafic light states. When in stop state, change
- *         to next trafic light and start state cycle for it.
+ * @brief  Switch between traffic light states. When in stop state, change
+ *         to next traffic light and start state cycle for it.
  */ 
 void changeState() {
   walkLight_t* w = curCar->walkLight;
@@ -91,15 +95,48 @@ void changeState() {
     w->greenLight = 1;
     break;
   }
+
+  writeIO();
+}
+
+void buttonFn(void) {
+  if (mode == manual ||
+      (mode == semiAutomatic && curCar->state == stop))
+    changeState();
+}
+
+void changeMode(void) {
+  switch (mode) {
+  case automatic:
+    mode = semiAutomatic;
+    break;
+  case semiAutomatic:
+    mode = manual;
+    break;
+  case manual:
+    mode = automatic;
+    break;
+  }
 }
 
 int main() {
   c1.nextCarLight = &c2;
   c2.nextCarLight = &c1;
 
-  irqRegister(0, changeState);
+  irqRegister(0, buttonFn);
+  irqRegister(1, changeMode);
 
-  run();
+  initIO();
+
+  while(1) {
+    readIO();
+    if (mode == automatic ||
+	(mode == semiAutomatic &&
+	 curCar->state != stop)) {
+      changeState();
+      sleep(1);
+    }
+  }
 
   return 0;
 }

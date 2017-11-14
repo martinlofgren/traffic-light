@@ -20,6 +20,12 @@ typedef enum {
   go
 } walkLightState;
 
+typedef enum {
+  automatic,
+  semiAutomatic,
+  manual
+} toggleMode;
+
 typedef struct walkLight {
   walkLightState state;
   uint8_t redLight;

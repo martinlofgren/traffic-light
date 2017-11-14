@@ -20,6 +20,7 @@ GC gc;
 
 /* Application global variables */
 voidFunction irqFn;
+voidFunction modeFn;
 
 /* Local function declarations */
 void init_x(void);
@@ -91,30 +92,57 @@ void redraw(void) {
 };
 
 void irqRegister(int irqNum, voidFunction fn) {
-  irqFn = fn;
+  switch (irqNum) {
+  case 0:
+    irqFn = fn;
+    break;
+  case 1:
+    modeFn = fn;
+    break;
+  }
 }
 
-
-
-void run(void) {
+void readIO() {
   XEvent event;
   KeySym key;
   char text[255];
 
-  init_x();
-  while(1) {		
-    XNextEvent(dis, &event);
+  if (XPending(dis) < 1)
+    return;
+  XNextEvent(dis, &event);
 	
-    if (event.type == Expose && event.xexpose.count == 0) {
-      redraw();
+  if (event.type == Expose && event.xexpose.count == 0) {
+    redraw();
+  }
+  if (event.type == KeyPress&&
+      XLookupString(&event.xkey, text, 255, &key,0) == 1) {
+    if (text[0] == 'q') {
+      close_x();
     }
-    if (event.type == KeyPress&&
-	XLookupString(&event.xkey, text, 255, &key,0) == 1) {
-      if (text[0] == 'q') {
-	close_x();
+    else if (text[0] == 'm') {
+      modeFn();
+      switch (mode) {
+      case automatic:
+	printf("Automatic lover\n");
+	break;
+      case semiAutomatic:
+	printf("Semi-automatic mode\n");
+	break;
+      case manual:
+	printf("Manual mode\n");
+	break;
       }
+    }
+    else {
       irqFn();
-      redraw();
     }
   }
+}
+
+void writeIO() {
+  redraw();
+}
+
+void initIO(void) {
+  init_x();
 }

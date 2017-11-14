@@ -12,8 +12,11 @@ extern walkLight_t w1;
 extern walkLight_t w2;
 extern carLight_t c1;
 extern carLight_t c2;
+extern toggleMode mode;
 
-void run();
+void initIO();
+void readIO();
+void writeIO();
 void irqRegister(int irqNum, voidFunction fn);
 
 #endif //SIM_H
