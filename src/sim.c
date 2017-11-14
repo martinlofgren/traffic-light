@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <unistd.h> // usleep
 #include "sim.h"
 
 /* X variables */
@@ -92,6 +93,8 @@ void redraw(void) {
 void irqRegister(int irqNum, voidFunction fn) {
   irqFn = fn;
 }
+
+
 
 void run(void) {
   XEvent event;

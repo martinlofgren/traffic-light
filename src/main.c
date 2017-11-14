@@ -43,7 +43,16 @@ carLight_t c2 = {
 
 carLight_t* curCar = &c1;
 
-/* Function definitions */
+/*****************************************************************************
+ *
+ *  FUNCTION DEFINITIONS
+ *
+ ****************************************************************************/
+
+/**
+ * @brief  Switch between trafic light states. When in stop state, change
+ *         to next trafic light and start state cycle for it.
+ */ 
 void changeState() {
   walkLight_t* w = curCar->walkLight;
   switch (curCar->state) {
